@@ -37,7 +37,6 @@ function useDDragon() {
 
 interface Participant {
   puuid: string;
-  // May be empty depending on privacy. We'll prefer Riot ID fields.
   summonerName?: string;
   riotIdGameName?: string;
   riotIdTagline?: string;
@@ -52,7 +51,11 @@ interface Participant {
   teamPosition?: string;
 }
 
-interface MatchInfo { participants: Participant[]; gameCreation: number; gameDuration: number; queueId: number;
+interface MatchInfo { 
+  participants: Participant[]; 
+  gameCreation: number; 
+  gameDuration: number; 
+  queueId: number; 
   gameStartTimestamp?: number;
   gameEndTimestamp?: number;
 }
@@ -79,10 +82,6 @@ function baseName(riotId?: string) {
 function formatDT(ms?: number) {
   if (!ms) return 'Unknown';
   try { return new Date(ms).toLocaleString(); } catch { return String(ms); }
-}
-  if (!riotId) return '';
-  const i = riotId.indexOf('#');
-  return i >= 0 ? riotId.slice(0, i) : riotId;
 }
 
 export default function Page() {
@@ -149,12 +148,11 @@ export default function Page() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Match {matchId}</h2>
             <p className="hint">Duration {Math.round(info.gameDuration/60)} min</p>
+          </div>
           <div className="hint">
             <span>Start: {formatDT(info.gameStartTimestamp || info.gameCreation)}</span>
             {"  |  "}
             <span>End: {formatDT(info.gameEndTimestamp || (info.gameCreation + info.gameDuration * 1000))}</span>
-          </div>
-
           </div>
           <TeamTable teamName="Blue team" participants={teams.blue} version={version} champKeyMap={champKeyMap} spellKeyMap={spellKeyMap} playerA={playerA} playerB={playerB} />
           <TeamTable teamName="Red team" participants={teams.red}  version={version} champKeyMap={champKeyMap} spellKeyMap={spellKeyMap} playerA={playerA} playerB={playerB} />

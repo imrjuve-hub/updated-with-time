@@ -1,3 +1,4 @@
+export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { REGIONAL_FROM_PLATFORM, normalizePlatform, type Platform } from '@/lib/regions';
 import { riotFetch } from '@/lib/fetcher';

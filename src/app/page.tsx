@@ -1,4 +1,3 @@
-
 'use client';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
@@ -17,8 +16,8 @@ async function postJSON<T>(url: string, data: any): Promise<T> {
 
 function useDDragon() {
   const [version, setVersion] = useState<string>('');
-  const [champKeyMap, setChampKeyMap] = useState<Record<string, string>>({}); // key -> champion name
-  const [spellKeyMap, setSpellKeyMap] = useState<Record<string, string>>({}); // numeric key -> spell id
+  const [champKeyMap, setChampKeyMap] = useState<Record<string, string>>({});
+  const [spellKeyMap, setSpellKeyMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
@@ -70,7 +69,6 @@ interface MatchInfo {
 
 const PLATFORMS: Platform[] = ['NA1','EUW1','EUN1','KR','JP1','BR1','LA1','LA2','OC1','TR1','RU','PH2','SG2','TH2','TW2','VN2'];
 
-// Display helpers (top-level, not nested inside another function)
 function displayName(p: Participant) {
   if (p.riotIdGameName && p.riotIdTagline) return `${p.riotIdGameName}#${p.riotIdTagline}`;
   if (p.summonerName) return p.summonerName;
@@ -161,107 +159,8 @@ export default function Page() {
           </div>
           <div className="hint">
             <span>Start: {formatDT(info.gameStartTimestamp || info.gameCreation)}</span>
-            {"  |  "}
+            {'  |  '}
             <span>End: {formatDT(info.gameEndTimestamp || (info.gameCreation + info.gameDuration * 1000))}</span>
           </div>
           <TeamTable teamName="Blue team" participants={teams.blue} version={version} champKeyMap={champKeyMap} spellKeyMap={spellKeyMap} playerA={playerA} playerB={playerB} />
-          <TeamTable teamName="Red team" participants={teams.red}  version={version} champKeyMap={champKeyMap} spellKeyMap={spellKeyMap} playerA={playerA} playerB={playerB} />
-        </section>
-      )}
-    </main>
-  );
-}
-
-// ---------- Subcomponents ----------
-function TeamTable({ teamName, participants, version, champKeyMap, spellKeyMap, playerA, playerB }:{
-  teamName: string;
-  participants: Participant[];
-  version: string;
-  champKeyMap: Record<string,string>;
-  spellKeyMap: Record<string,string>;
-  playerA: string; playerB: string;
-}) {
-  return (
-    <div className="card p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">{teamName}</h3>
-        <span className="badge">{participants[0]?.win ? 'Win' : 'Loss'}</span>
-      </div>
-      <table className="table">
-        <thead>
-          <tr className="border-b border-neutral-800">
-            <th className="th">Player</th>
-            <th className="th">Champion</th>
-            <th className="th">Spells</th>
-            <th className="th">KDA</th>
-            <th className="th">CS</th>
-            <th className="th">Gold</th>
-            <th className="th">Damage</th>
-            <th className="th">Vision</th>
-            <th className="th">Items</th>
-          </tr>
-        </thead>
-        <tbody>
-          {participants.map(p => (
-            <tr key={p.puuid} className="border-b border-neutral-900">
-              <td className="td pr-2">
-                <span className={`px-2 py-1 rounded-lg ${highlight(p, playerA, playerB) ? 'bg-blue-600/20 text-blue-200' : 'bg-neutral-800/60 text-neutral-200'}`}>{displayName(p)}</span>
-              </td>
-              <td className="td">
-                <ChampionCell championId={p.championId} version={version} champKeyMap={champKeyMap} />
-              </td>
-              <td className="td">
-                <SpellCell s1={p.summoner1Id} s2={p.summoner2Id} version={version} spellKeyMap={spellKeyMap} />
-              </td>
-              <td className="td">{p.kills}/{p.deaths}/{p.assists}</td>
-              <td className="td">{p.totalMinionsKilled + p.neutralMinionsKilled}</td>
-              <td className="td">{p.goldEarned.toLocaleString()}</td>
-              <td className="td">{p.totalDamageDealtToChampions.toLocaleString()}</td>
-              <td className="td">{p.visionScore}</td>
-              <td className="td">
-                <div className="flex gap-1">
-                  {[p.item0,p.item1,p.item2,p.item3,p.item4,p.item5,p.item6].filter(Boolean).map((id: number) => (
-                    <Image key={id} alt="item" src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/item/${id}.png`} width={24} height={24} className="rounded" />
-                  ))}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function ChampionCell({ championId, version, champKeyMap }:{ championId: number; version: string; champKeyMap: Record<string,string>; }) {
-  const name = champKeyMap[String(championId)];
-  if (!name || !version) return <span className="hint">{championId}</span>;
-  return (
-    <div className="flex items-center gap-2">
-      <Image alt={name} src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${name}.png`} width={28} height={28} className="rounded" />
-      <span>{name}</span>
-    </div>
-  );
-}
-
-function SpellCell({ s1, s2, version, spellKeyMap }:{ s1: number; s2: number; version: string; spellKeyMap: Record<string,string>; }) {
-  const a = spellKeyMap[String(s1)];
-  const b = spellKeyMap[String(s2)];
-  if (!a || !b || !version) return <span className="hint">{s1}, {s2}</span>;
-  return (
-    <div className="flex items-center gap-1">
-      <Image alt={a} src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/${a}.png`} width={24} height={24} />
-      <Image alt={b} src={`https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/${b}.png`} width={24} height={24} />
-    </div>
-  );
-}
-
-function highlight(p: Participant, a: string, b: string) {
-  const disp = normalizeName(displayName(p));
-  const sum = normalizeName(p?.summonerName);
-  const aFull = normalizeName(a);
-  const bFull = normalizeName(b);
-  const aBase = normalizeName(baseName(a));
-  const bBase = normalizeName(baseName(b));
-  return disp === aFull || disp === bFull || sum === aBase || sum === bBase;
-}
+          <TeamTable teamName="Red team" participants={teams.red}  version={version} champKeyMap={champKeyMap} spellKeyMap={spellKeyMap} playerA={playerA} playerB={pl

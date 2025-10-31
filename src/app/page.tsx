@@ -1,10 +1,16 @@
+
 'use client';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import type { Platform } from '@/lib/regions';
 
+// ---------- Helpers ----------
 async function postJSON<T>(url: string, data: any): Promise<T> {
-  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
@@ -20,10 +26,12 @@ function useDDragon() {
         const versions: string[] = await (await fetch('https://ddragon.leagueoflegends.com/api/versions.json')).json();
         const v = versions[0];
         setVersion(v);
+
         const champ = await (await fetch(`https://ddragon.leagueoflegends.com/cdn/${v}/data/en_US/champion.json`)).json();
-        const map: Record<string, string> = {};
-        Object.values<any>(champ.data).forEach((c) => { map[c.key] = c.id; });
-        setChampKeyMap(map);
+        const cMap: Record<string, string> = {};
+        Object.values<any>(champ.data).forEach((c) => { cMap[c.key] = c.id; });
+        setChampKeyMap(cMap);
+
         const sums = await (await fetch(`https://ddragon.leagueoflegends.com/cdn/${v}/data/en_US/summoner.json`)).json();
         const sMap: Record<string, string> = {};
         Object.values<any>(sums.data).forEach((s: any) => { sMap[s.key] = s.id; });
@@ -51,17 +59,18 @@ interface Participant {
   teamPosition?: string;
 }
 
-interface MatchInfo { 
-  participants: Participant[]; 
-  gameCreation: number; 
-  gameDuration: number; 
-  queueId: number; 
+interface MatchInfo {
+  participants: Participant[];
+  gameCreation: number;
+  gameDuration: number;
+  queueId: number;
   gameStartTimestamp?: number;
   gameEndTimestamp?: number;
 }
 
 const PLATFORMS: Platform[] = ['NA1','EUW1','EUN1','KR','JP1','BR1','LA1','LA2','OC1','TR1','RU','PH2','SG2','TH2','TW2','VN2'];
 
+// Display helpers (top-level, not nested inside another function)
 function displayName(p: Participant) {
   if (p.riotIdGameName && p.riotIdTagline) return `${p.riotIdGameName}#${p.riotIdTagline}`;
   if (p.summonerName) return p.summonerName;
@@ -84,6 +93,7 @@ function formatDT(ms?: number) {
   try { return new Date(ms).toLocaleString(); } catch { return String(ms); }
 }
 
+// ---------- Page ----------
 export default function Page() {
   const { version, champKeyMap, spellKeyMap } = useDDragon();
   const [platform, setPlatform] = useState<Platform>('EUW1');
@@ -162,6 +172,7 @@ export default function Page() {
   );
 }
 
+// ---------- Subcomponents ----------
 function TeamTable({ teamName, participants, version, champKeyMap, spellKeyMap, playerA, playerB }:{
   teamName: string;
   participants: Participant[];
